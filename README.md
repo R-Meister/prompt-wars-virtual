@@ -16,6 +16,7 @@ Cloud-native smart stadium experience platform built for zero-cost operation on 
 ```bash
 cd web
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
@@ -24,14 +25,37 @@ npm run dev
 ```bash
 cd functions
 npm install
+cp .env.example .env.local
 npm run serve
 ```
+
+The web app reads Firebase config from `web/.env.local` and enables auth/listeners when configured.
+
+## Role Management
+
+Set an initial admin user by calling the `setUserRole` function with your bootstrap secret:
+
+```bash
+curl -X POST "http://127.0.0.1:5001/crowdsense-ai-dev/us-central1/setUserRole" \
+  -H "content-type: application/json" \
+  -H "x-admin-bootstrap-secret: $ADMIN_BOOTSTRAP_SECRET" \
+  -d '{"uid":"<firebase-uid>","role":"admin"}'
+```
+
+Allowed roles: `viewer`, `admin`.
 
 ## Build and Test
 
 ```bash
 cd web && npm run build
 cd functions && npm test
+```
+
+To push sample telemetry into Firestore via the ingestion function:
+
+```bash
+cd functions
+npm run simulate:push
 ```
 
 ## Deploy

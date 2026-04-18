@@ -7,6 +7,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore()
+const roles = ['viewer', 'admin']
 
 const allowedDensities = ['low', 'medium', 'high', 'critical']
 
@@ -87,6 +88,20 @@ exports.ingestSimulationEvent = onRequest(async (req, res) => {
       )
 
       tx.set(ingestRef, payload)
+
+      if (alertLevel !== 'green') {
+        const alertRef = db.collection('alerts').doc()
+        tx.set(alertRef, {
+          zoneId: payload.zoneId,
+          level: alertLevel,
+          score,
+          message:
+            alertLevel === 'red'
+              ? 'Critical congestion detected. Reroute attendees now.'
+              : 'Queue pressure rising. Prepare reroute advisory.',
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        })
+      }
     })
 
     logger.info('simulation_event_ingested', {
@@ -99,5 +114,51 @@ exports.ingestSimulationEvent = onRequest(async (req, res) => {
   } catch (error) {
     logger.error('simulation_ingest_failed', { message: error.message })
     res.status(400).json({ ok: false, error: error.message })
+  }
+})
+
+exports.setUserRole = onRequest(async (req, res) => {
+  try {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Use POST' })
+      return
+    }
+
+    const bootstrapSecret = process.env.ADMIN_BOOTSTRAP_SECRET
+    const providedSecret = req.get('x-admin-bootstrap-secret')
+
+    if (!bootstrapSecret || providedSecret !== bootstrapSecret) {
+      res.status(403).json({ ok: false, error: 'Forbidden' })
+      return
+    }
+
+    const uid = String(req.body?.uid || '').trim()
+    const role = String(req.body?.role || '').trim()
+
+    if (!uid) {
+      res.status(400).json({ ok: false, error: 'uid is required' })
+      return
+    }
+
+    if (!roles.includes(role)) {
+      res.status(400).json({ ok: false, error: 'role must be viewer|admin' })
+      return
+    }
+
+    await admin.auth().setCustomUserClaims(uid, { role })
+    await db.collection('profiles').doc(uid).set(
+      {
+        uid,
+        role,
+        roleUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    )
+
+    logger.info('user_role_updated', { uid, role })
+    res.status(200).json({ ok: true, uid, role })
+  } catch (error) {
+    logger.error('set_user_role_failed', { message: error.message })
+    res.status(500).json({ ok: false, error: error.message })
   }
 })

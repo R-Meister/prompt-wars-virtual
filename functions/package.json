@@ -9,7 +9,8 @@
   "scripts": {
     "serve": "firebase emulators:start --only functions,firestore",
     "deploy": "firebase deploy --only functions",
-    "test": "node --test"
+    "test": "node --test",
+    "simulate:push": "node scripts/push-simulation.js"
   },
   "dependencies": {
     "firebase-admin": "^12.7.0",
