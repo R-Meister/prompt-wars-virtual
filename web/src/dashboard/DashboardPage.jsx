@@ -7,19 +7,48 @@ import { statCardsFromZones, toPrettyDensity, toneFromAlert } from '../shared/ut
 
 function recommendationFromData(zones, recommendations) {
   if (recommendations.length) {
-    return recommendations[0].guidance || 'Continue monitoring live telemetry.'
+    const top = recommendations[0]
+    return {
+      guidance: top.guidance || 'Continue monitoring live telemetry.',
+      operatorAction: top.operatorAction || 'Maintain observation and respond to escalations.',
+      attendeeMessage: top.attendeeMessage || 'Follow official wayfinding and steward instructions.',
+      rerouteZone: top.rerouteZone || 'N/A',
+      expectedQueueDeltaMinutes: Number(top.expectedQueueDeltaMinutes || 0),
+      source: top.source || 'deterministic-fallback',
+    }
   }
 
   if (!zones.length) {
-    return 'No live zone telemetry yet. Use the simulator script to ingest events.'
+    return {
+      guidance: 'No live zone telemetry yet. Use the simulator script to ingest events.',
+      operatorAction: 'Ingest simulation events to initialize recommendations.',
+      attendeeMessage: 'No alerts at this time.',
+      rerouteZone: 'N/A',
+      expectedQueueDeltaMinutes: 0,
+      source: 'deterministic-fallback',
+    }
   }
 
   const hottest = zones[0]
   if ((hottest.score || 0) >= 85) {
-    return `Reroute attendees away from ${hottest.zoneId} for 10 minutes and trigger localized alerts.`
+    return {
+      guidance: `Reroute attendees away from ${hottest.zoneId} for 10 minutes and trigger localized alerts.`,
+      operatorAction: 'Dispatch stewards and update signage on alternate path.',
+      attendeeMessage: 'Follow alternate route guidance to avoid congestion.',
+      rerouteZone: 'nearest-open-gate',
+      expectedQueueDeltaMinutes: 4,
+      source: 'deterministic-fallback',
+    }
   }
 
-  return `Monitor ${hottest.zoneId}; current score ${hottest.score || 0} remains below critical threshold.`
+  return {
+    guidance: `Monitor ${hottest.zoneId}; current score ${hottest.score || 0} remains below critical threshold.`,
+    operatorAction: 'Keep routine monitoring active.',
+    attendeeMessage: 'Conditions are currently normal.',
+    rerouteZone: hottest.zoneId,
+    expectedQueueDeltaMinutes: 0,
+    source: 'deterministic-fallback',
+  }
 }
 
 function localizedAlertMessage(alert, locale) {
@@ -153,7 +182,22 @@ export function DashboardPage() {
 
       <section className="recommendation-panel" aria-label="System recommendation">
         <h2>System Recommendation</h2>
-        <p>{recommendation}</p>
+        <p>{recommendation.guidance}</p>
+        <p>
+          <strong>Operator Action:</strong> {recommendation.operatorAction}
+        </p>
+        <p>
+          <strong>Attendee Message:</strong> {recommendation.attendeeMessage}
+        </p>
+        <p>
+          <strong>Reroute Target:</strong> {recommendation.rerouteZone}
+        </p>
+        <p>
+          <strong>Expected Queue Improvement:</strong> {recommendation.expectedQueueDeltaMinutes} min
+        </p>
+        <p>
+          <strong>Recommendation Source:</strong> {recommendation.source}
+        </p>
       </section>
 
       <section className="alert-panel" aria-label="Recent alerts" aria-live="polite">

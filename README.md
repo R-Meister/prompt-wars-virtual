@@ -59,6 +59,16 @@ cd web && npm run lint
 cd functions && npm test
 ```
 
+## Judging Criteria Audit Map
+
+- **Code Quality:** modular frontend and backend split by domain (`auth`, `dashboard`, `landing`, `shared`, recommendation/validation/localization modules).
+- **Security:** field-level Firestore rules, role-guarded writes, bootstrap-protected role assignment, deny-by-default deletes.
+- **Efficiency:** event-driven Firestore listeners, route-level lazy loading, threshold-gated external API usage.
+- **Testing:** unit and logic-integration style tests for simulator, validation, recommendations, and Vertex trigger policy.
+- **Accessibility:** keyboard focus support, reduced-motion mode, and `aria-live` announcements for dynamic updates.
+- **Google Services:** Firebase Hosting/Auth/Firestore/Functions + optional Vertex/Translate with safe fallbacks.
+- **Problem Alignment:** dashboard surfaces operator actions, attendee guidance, reroute targets, and queue-reduction expectations.
+
 To push sample telemetry into Firestore via the ingestion function:
 
 ```bash

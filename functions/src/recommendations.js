@@ -41,6 +41,14 @@ function calculateTrend(previousZone = {}, nextZone = {}) {
 
 function fallbackRecommendation(zoneState = {}) {
   const score = Number(zoneState.score || 0)
+  const estimatedQueueMinutes = Number(zoneState.estimatedQueueMinutes || zoneState.queueMinutes || 0)
+  const alternateRouteByZone = {
+    'north-gate': 'west-entry',
+    'west-entry': 'east-exit',
+    'food-court-a': 'food-court-b',
+    'east-exit': 'north-gate',
+  }
+  const alternateRoute = alternateRouteByZone[zoneState.zoneId] || 'nearest-open-gate'
 
   if (score >= 85) {
     return {
@@ -48,6 +56,11 @@ function fallbackRecommendation(zoneState = {}) {
       headline: `Reroute traffic away from ${zoneState.zoneId}`,
       guidance:
         'Dispatch ground staff, update signage, and send multilingual advisory for the next 10 minutes.',
+      attendeeMessage:
+        'This zone is temporarily crowded. Follow steward guidance to the nearest alternate route.',
+      operatorAction: `Dispatch two stewards and update signage toward ${alternateRoute}.`,
+      rerouteZone: alternateRoute,
+      expectedQueueDeltaMinutes: Math.max(3, Math.round(estimatedQueueMinutes * 0.2)),
       severity: 'red',
     }
   }
@@ -57,6 +70,10 @@ function fallbackRecommendation(zoneState = {}) {
       action: 'preemptive-dispatch',
       headline: `Queue pressure rising at ${zoneState.zoneId}`,
       guidance: 'Stage one queue marshal and prepare a soft reroute message.',
+      attendeeMessage: 'Expect moderate wait. Consider nearby concession points with shorter lines.',
+      operatorAction: 'Pre-stage one marshal and prepare multilingual soft reroute advisory.',
+      rerouteZone: alternateRoute,
+      expectedQueueDeltaMinutes: Math.max(2, Math.round(estimatedQueueMinutes * 0.12)),
       severity: 'amber',
     }
   }
@@ -65,6 +82,10 @@ function fallbackRecommendation(zoneState = {}) {
     action: 'monitor',
     headline: `${zoneState.zoneId} remains stable`,
     guidance: 'Continue passive monitoring; no intervention required.',
+    attendeeMessage: 'Conditions are normal. Continue through standard route guidance.',
+    operatorAction: 'No intervention required. Maintain routine observation.',
+    rerouteZone: zoneState.zoneId,
+    expectedQueueDeltaMinutes: 0,
     severity: 'green',
   }
 }

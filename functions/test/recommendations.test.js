@@ -28,4 +28,6 @@ test('fallbackRecommendation returns reroute at critical scores', () => {
   const result = fallbackRecommendation({ zoneId: 'north-gate', score: 90 })
   assert.equal(result.action, 'reroute')
   assert.equal(result.severity, 'red')
+  assert.equal(result.rerouteZone, 'west-entry')
+  assert.ok(result.expectedQueueDeltaMinutes >= 3)
 })

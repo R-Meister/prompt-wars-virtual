@@ -42,6 +42,11 @@ async function getOrCreateTranslation({
     return sourceText
   }
 
+  const allowedLocales = new Set(['es', 'fr', 'hi'])
+  if (!allowedLocales.has(locale)) {
+    return sourceText
+  }
+
   const docId = translationDocId(sourceText, locale)
   const ref = db.collection('translations').doc(docId)
   const existing = await ref.get()

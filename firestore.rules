@@ -62,7 +62,14 @@ service cloud.firestore {
         && request.resource.data.action in ['monitor', 'preemptive-dispatch', 'reroute']
         && request.resource.data.headline is string
         && request.resource.data.guidance is string
+        && request.resource.data.attendeeMessage is string
+        && request.resource.data.operatorAction is string
+        && request.resource.data.rerouteZone is string
+        && request.resource.data.expectedQueueDeltaMinutes is number
+        && request.resource.data.expectedQueueDeltaMinutes >= 0
+        && request.resource.data.expectedQueueDeltaMinutes <= 60
         && request.resource.data.severity in ['green', 'amber', 'red']
+        && request.resource.data.source in ['deterministic-fallback', 'vertex-ai']
         && request.resource.data.score is number
         && request.resource.data.score >= 0
         && request.resource.data.score <= 100;

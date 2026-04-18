@@ -9,6 +9,7 @@ const {
 } = require('./recommendations')
 const { buildLocalizedMessages } = require('./localization')
 const { sanitizeRoleUpdate, sanitizeSimulationEvent } = require('./validation')
+const { requestVertexSuggestion, shouldCallVertex } = require('./vertex')
 
 if (!admin.apps.length) {
   admin.initializeApp()
@@ -16,6 +17,7 @@ if (!admin.apps.length) {
 
 const db = admin.firestore()
 const allowExternalApis = String(process.env.ALLOW_EXTERNAL_APIS || 'false').toLowerCase() === 'true'
+const allowVertexAi = String(process.env.ALLOW_VERTEX_AI || 'false').toLowerCase() === 'true'
 
 function congestionScore(event) {
   const densityWeight = {
@@ -59,7 +61,36 @@ exports.ingestSimulationEvent = onRequest(async (req, res) => {
     const existingZone = await zoneRef.get()
     const previousZone = existingZone.exists ? existingZone.data() : null
     const trend = calculateTrend(previousZone, { score })
-    const fallback = fallbackRecommendation({ ...payload, score })
+    const fallback = fallbackRecommendation({ ...payload, score, estimatedQueueMinutes })
+
+    let recommendation = fallback
+    if (
+      shouldCallVertex({
+        previousZone,
+        nextZone: { score },
+        enabled: allowExternalApis && allowVertexAi,
+      })
+    ) {
+      try {
+        recommendation = await requestVertexSuggestion({
+          endpoint: process.env.VERTEX_ENDPOINT,
+          token: process.env.VERTEX_ACCESS_TOKEN,
+          zoneState: {
+            zoneId: payload.zoneId,
+            score,
+            queueMinutes: payload.queueMinutes,
+            estimatedQueueMinutes,
+            trend,
+            alertLevel,
+          },
+        })
+      } catch (vertexError) {
+        logger.warn('vertex_suggestion_fallback', {
+          zoneId: payload.zoneId,
+          message: vertexError.message,
+        })
+      }
+    }
 
     const supportedLocales = ['en', 'es', 'fr', 'hi']
     const localizedMessages = await buildLocalizedMessages({
@@ -98,14 +129,18 @@ exports.ingestSimulationEvent = onRequest(async (req, res) => {
         recommendationRef,
         {
           zoneId: payload.zoneId,
-          action: fallback.action,
-          headline: fallback.headline,
-          guidance: fallback.guidance,
-          severity: fallback.severity,
+          action: recommendation.action,
+          headline: recommendation.headline,
+          guidance: recommendation.guidance,
+          attendeeMessage: recommendation.attendeeMessage,
+          operatorAction: recommendation.operatorAction,
+          rerouteZone: recommendation.rerouteZone || payload.zoneId,
+          expectedQueueDeltaMinutes: Number(recommendation.expectedQueueDeltaMinutes || 0),
+          severity: recommendation.severity,
           score,
           trend,
           generatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          source: 'deterministic-fallback',
+          source: recommendation === fallback ? 'deterministic-fallback' : 'vertex-ai',
         },
         { merge: true },
       )
@@ -140,7 +175,7 @@ exports.ingestSimulationEvent = onRequest(async (req, res) => {
       estimatedQueueMinutes,
       queueConfidence,
       trend,
-      recommendation: fallback,
+      recommendation,
     })
   } catch (error) {
     logger.error('simulation_ingest_failed', { message: error.message })
