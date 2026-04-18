@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom'
 
-const navItems = ['Timeline', 'Tracks', 'Features', 'Prizes', 'FAQ']
-
 const featureCards = [
   {
     title: 'Live Congestion Map',
@@ -24,13 +22,6 @@ export function LandingPage() {
         <div className="brand">
           CrowdSense <span className="brand-mark">AI</span>
         </div>
-        <nav className="top-nav" aria-label="Primary">
-          {navItems.map((item) => (
-            <a key={item} href="#" className="nav-pill">
-              {item}
-            </a>
-          ))}
-        </nav>
         <Link to="/dashboard" className="register-btn">
           Launch Dashboard
         </Link>
