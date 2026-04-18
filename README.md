@@ -72,6 +72,16 @@ npm run simulate:push
 firebase deploy
 ```
 
+## Zero-Cost Deployment Guardrails
+
+To avoid any real money usage, keep external paid APIs disabled:
+
+- In `functions/.env.local`, set `ALLOW_EXTERNAL_APIS=false`
+- Do not set `GOOGLE_TRANSLATE_API_KEY` (or leave it blank)
+- Keep usage on Firebase Spark plan and avoid upgrading billing
+
+With this setup, the app runs fully with deterministic fallbacks and cached/local messages only.
+
 ## Notes
 
 - Keep secrets out of the repository; use Firebase/GCP secret management.

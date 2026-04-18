@@ -15,6 +15,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore()
+const allowExternalApis = String(process.env.ALLOW_EXTERNAL_APIS || 'false').toLowerCase() === 'true'
 
 function congestionScore(event) {
   const densityWeight = {
@@ -70,6 +71,7 @@ exports.ingestSimulationEvent = onRequest(async (req, res) => {
       locales: supportedLocales,
       apiKey: process.env.GOOGLE_TRANSLATE_API_KEY,
       admin,
+      allowExternalApis,
     })
 
     await db.runTransaction(async (tx) => {

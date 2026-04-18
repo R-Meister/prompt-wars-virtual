@@ -30,7 +30,14 @@ async function translateText(text, locale, apiKey) {
   return translatedText
 }
 
-async function getOrCreateTranslation({ db, sourceText, locale, apiKey, admin }) {
+async function getOrCreateTranslation({
+  db,
+  sourceText,
+  locale,
+  apiKey,
+  admin,
+  allowExternalApis,
+}) {
   if (locale === 'en') {
     return sourceText
   }
@@ -42,7 +49,7 @@ async function getOrCreateTranslation({ db, sourceText, locale, apiKey, admin })
     return existing.data().text
   }
 
-  if (!apiKey) {
+  if (!allowExternalApis || !apiKey) {
     return sourceText
   }
 
@@ -61,7 +68,14 @@ async function getOrCreateTranslation({ db, sourceText, locale, apiKey, admin })
   }
 }
 
-async function buildLocalizedMessages({ db, baseMessage, locales, apiKey, admin }) {
+async function buildLocalizedMessages({
+  db,
+  baseMessage,
+  locales,
+  apiKey,
+  admin,
+  allowExternalApis,
+}) {
   const entries = await Promise.all(
     locales.map(async (locale) => {
       const text = await getOrCreateTranslation({
@@ -70,6 +84,7 @@ async function buildLocalizedMessages({ db, baseMessage, locales, apiKey, admin 
         locale,
         apiKey,
         admin,
+        allowExternalApis,
       })
 
       return [locale, text]
