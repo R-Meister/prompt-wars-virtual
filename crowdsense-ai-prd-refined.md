@@ -1,88 +1,237 @@
-# 🏟️ Product Requirements Document: CrowdSense AI
+# Product Requirements Document - CrowdSense AI (Refined v2)
+
 **Project:** Smart Stadium Experience Platform  
 **Author:** Raman  
-**Version:** 1.1 | **Status:** Final - High Performance  
-**Target:** 100/100 Judging Criteria Alignment  
+**Version:** 2.0 (Execution-aligned rewrite)  
+**Status:** Active Build Context  
+**Target:** Maximum alignment with judging criteria and real-world event operations
 
 ---
 
-## 🎯 1. Objective
-Design and deploy a cloud-native, serverless platform on **Google Cloud Platform (GCP)** to optimize the physical attendee experience at large-scale venues. The system focuses on real-time crowd distribution, queue management, and safety—operating entirely within the **GCP Free Tier** with a repository footprint of **< 10MB**.
+## 1) Objective
+
+Design and deploy a cloud-native, serverless platform on Google Cloud that improves the physical event experience for attendees at large-scale sporting venues.
+
+The system must directly improve:
+
+- Crowd movement
+- Waiting times
+- Real-time coordination between organizers and attendees
+
+while preserving:
+
+- Free-tier-friendly operation
+- Strong security posture
+- High accessibility
+- Fast, reliable user experience
 
 ---
 
-## 🚨 2. Problem Statement Alignment (Score: 100/100)
-Large sporting venues suffer from "Information Asymmetry" where attendees and organizers lack real-time visibility into physical flow. 
-* **Safety:** Overcrowded entry/exit points create crush risks.
-* **Efficiency:** Long queues at vendors reduce revenue and satisfaction.
-* **Communication:** Lack of localized, real-time alerts leads to confusion.
-* **Solution:** CrowdSense AI bridges this gap using simulated real-time data to provide predictive navigation and operational insights.
+## 2) Problem Statement and User Impact
+
+Large venues face a live visibility gap:
+
+- Attendees do not know which gates/routes are congested.
+- Vendor queues become unpredictable and reduce satisfaction/revenue.
+- Operations teams often react late due to fragmented signals.
+
+CrowdSense AI addresses this by converting live telemetry into actionable guidance:
+
+- **For attendees:** where to move next, what to avoid, and when conditions change.
+- **For operators:** where to reroute, when to dispatch support, and which alert to send.
+
+Expected impact:
+
+- Reduced hotspot pressure and safer movement
+- Lower queue times through proactive redistribution
+- Faster, localized communication during dynamic conditions
 
 ---
 
-## 🏗️ 3. System Architecture & Google Services (Score: 100/100)
-The architecture is designed for **maximum efficiency and zero cost**, utilizing only Google's "Always Free" tier services.
+## 3) Scope
 
-| Service | Role | Efficiency Strategy |
+### In Scope
+
+- Real-time zone congestion tracking
+- Queue estimation and alert generation
+- Role-based operations dashboard
+- Multilingual notification support
+- Predictive recommendation engine with deterministic fallback
+
+### Out of Scope (for this version)
+
+- Native mobile apps
+- Hardware sensor procurement/integration at venue edge
+- Ticketing/payment integrations
+
+---
+
+## 4) System Architecture and Google Services
+
+The architecture remains serverless and event-driven for efficiency and cost control.
+
+| Google Service | Purpose | Usage Strategy |
 | :--- | :--- | :--- |
-| **Firebase Hosting** | Frontend Deployment | Globally distributed CDN; < 1MB bundle size. |
-| **Cloud Functions** | Serverless Backend | Event-driven logic; 0ms idle cost; Python/Node.js optimized. |
-| **Cloud Firestore** | Real-Time Database | Document-based; real-time listeners to avoid polling overhead. |
-| **Vertex AI** | Predictive Engine | Single API calls for surge predictions (within free quotas). |
-| **Cloud Logging** | Observability | Minimalist logging (1-2 per event) to prevent storage bloat. |
-| **Google Translate** | Global Accessibility | Localized UI strings with cached translations. |
+| Firebase Hosting | Frontend delivery | CDN-backed static deploy, SPA rewrites |
+| Cloud Functions | Backend APIs and event handling | Short-lived handlers, strict validation, minimal deps |
+| Cloud Firestore | Realtime data store | Listener-driven UI, indexed queries, role-secured docs |
+| Firebase Auth | Identity and role-aware access | JWT with custom claims (`viewer`, `admin`) |
+| Vertex AI | Predictive enhancement | Trigger only on significant deltas, fallback always available |
+| Cloud Logging | Structured observability | Minimal event logs with severity discipline |
+| Cloud Monitoring | Reliability tracking | Latency/error dashboards and alert thresholds |
+| Google Translate API | Localization | Cached translation entries to control repeated cost |
 
 ---
 
-## 🔒 4. Security Implementation (Score: 100/100)
-Defensive practices are integrated at every layer:
-* **Identity & Access:** Firebase Auth (JWT) for secure user sessions.
-* **IAM Roles:** Strict "Principle of Least Privilege" for service accounts.
-* **Data Protection:** Firestore Security Rules to restrict read/write access by UID and role.
-* **Secrets Management:** API keys for Vertex AI/Translate are never committed to the repo; managed via GCP Secret Manager or environment variables.
-* **Input Validation:** Sanitize all simulated data inputs at the Cloud Function entry point.
+## 5) Functional Requirements
+
+### FR-1: Ingestion and Validation
+
+- Backend must accept simulation/live event payloads (`zoneId`, `density`, `queueMinutes`, `footfall`).
+- Invalid input must be rejected with explicit error responses.
+
+### FR-2: Zone State and Alerts
+
+- System must compute congestion score and alert level (`green`, `amber`, `red`).
+- `zones` collection must reflect latest known state per zone.
+- `alerts` entries must be generated for elevated risk states.
+
+### FR-3: Recommendation Layer
+
+- Dashboard must show recommendation for next best action.
+- Recommendation must exist even if AI provider is unavailable.
+
+### FR-4: Realtime Dashboard
+
+- Authenticated users see live zone states and alerts with Firestore listeners.
+- Dashboard must surface queue and movement-oriented decisions.
+
+### FR-5: Role Management and Access
+
+- `viewer` and `admin` roles enforced by claims and Firestore rules.
+- Admin-only operations (role changes, privileged writes) must be protected and audited.
+
+### FR-6: Localization
+
+- Alerts and core UI strings should support language switching.
+- Translation results should be cached to avoid repeated API calls.
+
+### FR-7: Simulation and Demo Operations
+
+- Scriptable simulation pipeline should generate realistic test data and ingest it end-to-end.
 
 ---
 
-## ⚡ 5. Performance & Efficiency (Score: 100/100)
-* **Cold Start Mitigation:** Lightweight function runtimes (Node.js 20) and minimal dependencies to keep execution < 200ms.
-* **Bundle Optimization:** Frontend utilizes tree-shaking and asset compression to ensure the total repo size remains **< 10MB**.
-* **Scalability:** Horizontal auto-scaling via Cloud Functions ensures stability during peak simulated load.
+## 6) Non-Functional Requirements
+
+### Performance and Efficiency
+
+- Frontend should target low initial load and responsive updates.
+- Functions should keep low cold-start overhead through lightweight runtime choices.
+- Expensive external calls (AI/Translate) must be quota-aware and threshold-triggered.
+
+### Reliability
+
+- Realtime updates must degrade gracefully on transient failures.
+- Fallback recommendation path must maintain continuity without AI.
+
+### Security
+
+- Principle of least privilege across service identities and data access.
+- No secrets in repository.
+- Field-level validation and restricted writes in rules.
+
+### Accessibility
+
+- WCAG 2.1 AA baseline.
+- Keyboard operability, clear focus indicators, contrast compliance.
+- Dynamic updates announced via assistive-compatible patterns.
 
 ---
 
-## 🧪 6. Testing Coverage (Score: 100/100)
-The codebase follows a **Shift-Left testing philosophy**:
-* **Unit Tests:** Coverage for core pathfinding algorithms and data parsing logic.
-* **Integration Tests:** Mocked Firestore triggers to validate end-to-end data flow (Function → DB → Frontend).
-* **Edge Case Focus:**
-    * Simulated "High Congestion" scenarios to test UI responsiveness.
-    * Network failure handling via Firestore offline persistence.
-    * Empty state handling for new stadium sections.
+## 7) Data Model (Logical)
+
+- `zones/{zoneId}`: current congestion, queue time, score, alert, timestamp
+- `simulationEvents/{eventId}`: ingested raw simulation payload + timestamp
+- `alerts/{alertId}`: alert level, message, zone, createdAt
+- `profiles/{uid}`: user identity metadata, role, role update timestamps
+- `translations/{key_locale}`: translated text cache for repeated use
 
 ---
 
-## ♿ 7. Accessibility & Inclusion (Score: 100/100)
-* **Standards:** Built to **WCAG 2.1 Level AA** compliance.
-* **UI/UX:** Semantic HTML5, high-contrast heatmaps, and ARIA labels for dynamic crowd alerts.
-* **Multilingual Support:** Dynamic language switching powered by the Google Translate API, ensuring inclusive access for international event attendees.
+## 8) Security Model
+
+- Authentication: Firebase Auth (Google sign-in for operator users)
+- Authorization: custom claims + Firestore rules (`viewer`/`admin`)
+- Admin controls: secured endpoint for role assignment with guarded bootstrap secret
+- Data protection: deny-by-default, collection-specific rules, immutable constraints where needed
+- Secrets: environment/secret manager only
 
 ---
 
-## 📐 8. Constraints & Resource Management
-* **Budget:** ₹0 Spend. Budget alerts configured at $1.00 as a fail-safe.
-* **Repo Size:** No heavy assets or large binaries; all visuals are SVGs or optimized WebP.
-* **Data Processing:** No continuous loops; Vertex AI calls are triggered only on significant data changes to conserve credits.
+## 9) Testing Strategy
+
+The test strategy follows progressive confidence:
+
+- **Unit tests:** scoring, simulation generation, validators, recommendation helpers
+- **Integration tests:** function write paths (`ingest -> zones/alerts/events`)
+- **Security rules tests:** allow/deny matrix by role and document shape
+- **Frontend tests:** auth states, empty/offline states, realtime update rendering
+- **E2E tests:** sign-in, simulate ingest, observe live dashboard outcomes
+
+Target outcome: critical paths are automatically verified pre-merge.
 
 ---
 
-## 📈 9. Success Metrics
-* **LCP (Largest Contentful Paint):** < 1.2s.
-* **Uptime:** 99.9% (Serverless availability).
-* **Resource Usage:** < 50% of monthly free tier limits.
-* **Accuracy:** Simulated surge predictions maintain a >90% precision rate.
+## 10) Observability and Operations
+
+- Structured logs for ingestion, role updates, recommendation lifecycle
+- Monitoring dashboard for p95 latency, error rates, and event volume
+- Budget and quota checks to avoid free-tier overrun
+- Release process with incremental commits and rollback-safe history
 
 ---
 
-## 🏁 10. Key Differentiator
-"CrowdSense AI demonstrates that high-availability, secure, and accessible infrastructure can be achieved with zero infrastructure costs through the strategic orchestration of GCP’s serverless ecosystem."
+## 11) Success Metrics
+
+### Product Outcome Metrics
+
+- Reduction in peak congestion score over simulated event windows
+- Reduction in queue-time hotspots after recommendation actions
+- Faster time-to-coordination from risk detection to alert publication
+
+### Technical Metrics
+
+- Stable realtime updates under simulation load
+- Low error rate in ingest and role-control endpoints
+- Build/test/rules checks passing in CI
+
+### Experience Metrics
+
+- Clear, accessible operational UI usable under time pressure
+- Multilingual alert delivery readiness
+
+---
+
+## 12) Constraints and Cost Discipline
+
+- Favor always-free serverless services and conservative API usage
+- Trigger AI/Translate only on meaningful changes
+- Keep repository and assets lean
+- Avoid unnecessary background loops; use event-driven updates
+
+---
+
+## 13) Delivery Plan Reference
+
+Execution details are tracked in:
+
+- `crowdsense-ai-build-plan.md`
+
+This PRD defines requirements and success criteria; the build plan defines implementation sequence and milestones.
+
+---
+
+## 14) Key Differentiator
+
+CrowdSense AI demonstrates that high-quality, accessible, and secure event-operations intelligence can be delivered with serverless architecture and cost-aware engineering, while directly improving attendee movement, queue experience, and on-ground coordination.

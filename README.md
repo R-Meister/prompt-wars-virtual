@@ -9,6 +9,13 @@ Cloud-native smart stadium experience platform built for zero-cost operation on 
 - `firestore.rules`: Firestore access control rules
 - `firebase.json`: Firebase Hosting, Functions, Firestore, and emulator config
 
+Core realtime collections:
+
+- `zones`: latest zone telemetry, congestion score, and queue estimates
+- `alerts`: elevated-risk alerts with localized message payloads
+- `recommendations`: deterministic operator action cards per zone
+- `translations`: cached translated alert copy by locale
+
 ## Local Development
 
 ### 1) Frontend
@@ -48,6 +55,7 @@ Allowed roles: `viewer`, `admin`.
 
 ```bash
 cd web && npm run build
+cd web && npm run lint
 cd functions && npm test
 ```
 
@@ -67,4 +75,5 @@ firebase deploy
 ## Notes
 
 - Keep secrets out of the repository; use Firebase/GCP secret management.
+- Set `GOOGLE_TRANSLATE_API_KEY` in functions env to enable translation caching.
 - CI includes Firebase Hosting preview on pull requests.

@@ -466,6 +466,34 @@ h1 {
   color: var(--ink-faded);
 }
 
+.locale-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  padding: 0.4rem 0.55rem;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.locale-picker select {
+  border: 2px solid var(--ink);
+  background: var(--cream);
+  font: inherit;
+  text-transform: none;
+  padding: 0.2rem;
+}
+
+.route-fallback {
+  padding: 2rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 @keyframes reveal-in {
   from {
     opacity: 0;
@@ -566,5 +594,16 @@ h1 {
 
   .zone-card:last-child {
     border-bottom: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

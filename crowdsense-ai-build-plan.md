@@ -1,103 +1,232 @@
-# CrowdSense AI — Build Plan & Phased Breakdown
+# CrowdSense AI - Execution Blueprint (Score Maximization)
 
-## Build Plan (Phased)
+This document rewrites and extends the original build plan with an implementation-first roadmap focused on maximizing:
 
-### Phase 0 — Foundation (Day 0-1)
-- Initialize mono-repo structure (`web`, `functions`, `shared`)
-- Choose stack (React + Vite + Firebase)
-- Define environment variable strategy
-- Set CI checks for size, tests, and lint
+- Code Quality
+- Security
+- Efficiency
+- Testing
+- Accessibility
+- Google Services usage
+- Problem Statement Alignment
 
-### Phase 1 — Core Data & Backend (Day 1-2)
-- Set up Firestore schema for zones, queues, and alerts
-- Implement Cloud Functions endpoints with input validation
-- Add simulated event ingestion pipeline
-- Add minimal Cloud Logging per PRD constraints
+It preserves the original context (serverless GCP, free-tier constraints, real-time crowd intelligence) while adding concrete delivery sequencing and acceptance criteria.
 
-### Phase 2 — Intelligence Layer (Day 2-3)
-- Implement surge scoring and route recommendation heuristics
-- Add optional Vertex AI calls only on significant data changes
-- Ensure deterministic fallback when AI is unavailable/quota-limited
+## 1) Goal and Constraints (Preserved Context)
 
-### Phase 3 — Real-Time Frontend App (Day 3-5)
-- Build dashboard for live crowd heat zones
-- Add queue cards, alert rail, and route suggestions
-- Use Firestore real-time listeners (no polling)
+- Build a cloud-native platform that improves physical event experience for attendees at large-scale sporting venues.
+- Core outcomes: better crowd movement, shorter waiting times, and stronger real-time coordination.
+- Operate inside GCP/Firebase free-tier-friendly limits and keep repository lightweight.
+- Keep zero-trust security posture and WCAG 2.1 AA accessibility compliance.
 
-### Phase 4 — Accessibility + Localization (Day 5)
-- Achieve WCAG 2.1 AA compliance targets
-- Add ARIA labels and keyboard navigation
-- Implement high-contrast tokens
-- Add dynamic language switching + translation cache
+## 2) Current State Snapshot
 
-### Phase 5 — Security Hardening (Day 5-6)
-- Implement Firebase Auth role model
-- Enforce strict Firestore Security Rules
-- Apply least-privilege IAM for service accounts
-- Keep secrets out of repo (Secret Manager/env vars)
+Already implemented:
 
-### Phase 6 — Testing & Performance Gate (Day 6-7)
-- Add unit + integration + edge-case tests
-- Validate offline/firestore-failure behavior
-- Enforce LCP target and repo size budget (`<10MB`)
-- Deploy to Firebase Hosting
+- React + Vite frontend with inspired landing page and dashboard route
+- Firebase Hosting/Functions/Firestore/Auth scaffolding
+- Live Firestore listeners for zones and alerts
+- Simulation ingestion endpoint and simulation push script
+- Basic role assignment endpoint and initial Firestore rules
+- Basic unit test coverage for simulator utilities
 
-## Landing Page Plan (Frontend Inspiration Applied)
+Not yet fully production-ready:
 
-### Visual Direction
-- Bold black outlines with off-white dotted/textured background
-- High-energy lime and orange stat blocks
-- Asymmetrical grid layout with sticker/badge accents
+- Vertex AI integration for predictive recommendations
+- Google Translate integration with cached localization
+- Rules testing matrix and integration/e2e test coverage
+- Bundle/performance hardening and CI quality/security gates
+- Accessibility audit artifacts and reduced-motion/announcements behavior
 
-### Hero Layout
-- Left panel: product narrative, short value pitch, dual CTA
-- Right panel: stacked metric tiles (`Live Alerts`, `Avg Queue Cut`, `Active Zones`)
+## 3) Phased Roadmap (Priority Ordered)
 
-### Navigation
-- Compact uppercase tabs
-- Strong primary CTA block on the right
-- Border-separated sections
+### Phase P0 - Platform Hardening (1-2 days)
 
-### Typography
-- One expressive headline font + one readable UI font
-- Heavy uppercase for labels and metrics
-- Maintain deliberate, non-generic visual identity
+Scope:
 
-### Motion & Interaction
-- Meaningful entrance animations (staggered cards, CTA lift, metric count-up)
-- Avoid excessive micro-animations
+- Split monolithic frontend into modules: `auth`, `dashboard`, `alerts`, `recommendations`, `shared/ui`
+- Add strict lint + format + pre-commit hooks
+- Introduce shared schemas for payload validation (runtime validation in functions)
+- Add CI checks: lint, unit tests, web build
 
-### Mobile Behavior
-- Preserve identity with stacked card composition
-- Simplified nav and touch-friendly CTAs
-- Compressed stat panel for small screens
+Exit criteria:
 
-## Detailed Work Breakdown
+- No lint errors
+- Build and tests pass in CI
+- Clear folder boundaries and shared contracts documented
 
-- Product shell: routing, app layout, theme tokens, reusable UI primitives
-- Realtime layer: Firestore subscription hooks, optimistic updates, loading/empty/offline states
-- Prediction module: trend features, confidence scoring, AI fallback path
-- Ops tooling: simulation speed flags, log verbosity controls, environment guardrails
-- Compliance checks: accessibility audit, security rules tests, performance budget checks
+### Phase P1 - Security and IAM Hardening (1-2 days)
 
-## Milestones / Exit Criteria
+Scope:
 
-### M1 (End of Phase 2)
-- Simulated event stream updates Firestore reliably
-- Surge scores generated consistently
+- Enforce stricter Firestore field-level rules for each collection
+- Add Firestore rules test suite (allow/deny matrix)
+- Lock down `setUserRole` flow (bootstrap + rotation playbook, least privilege)
+- Add App Check integration plan for frontend abuse protection
+- Add CORS and method restrictions for all HTTP functions
 
-### M2 (End of Phase 3)
-- Dashboard renders live zones, queue pressure, and route recommendations in near real-time
+Exit criteria:
 
-### M3 (End of Phase 5)
-- Auth, rules, and IAM validated via denied-access tests
+- Rules tests pass with explicit deny coverage
+- Role elevation path is auditable and documented
+- Secrets managed only through env/Secret Manager
 
-### M4 (End of Phase 6)
-- Deploy-ready with passing tests and budget/performance compliance
+### Phase P2 - Core Intelligence and Problem Fit (2-3 days)
 
-## Risk Controls
+Scope:
 
-- Free-tier overuse: throttle simulation and batch events
-- Cold starts: keep functions lightweight with minimal dependencies
-- Translation cost spikes: cache by key/locale and pre-translate core UI copy
-- UI complexity drift: lock design tokens and reusable component patterns early
+- Implement queue-time estimator with confidence score
+- Implement route recommendation engine (zone graph + congestion-aware rerouting)
+- Emit operator actions: reroute, dispatch staff, signage change, multilingual alert trigger
+- Add deterministic fallback for all model-driven outputs
+
+Exit criteria:
+
+- Every high-congestion event produces an actionable recommendation
+- Queue and movement guidance shown in real time on dashboard
+- Fallback logic works without AI dependency
+
+### Phase P3 - Google Services Completion (2 days)
+
+Scope:
+
+- Vertex AI integration for surge/reroute suggestions on significant deltas only
+- Google Translate API integration with cache layer (`translations` collection)
+- Cloud Logging structured events and severity discipline
+- Cloud Monitoring dashboard and budget alert setup checklist
+
+Exit criteria:
+
+- AI call rate throttled and quota-safe
+- Localized alert text available for supported languages
+- Observability dashboard captures latency, error rate, ingest volume
+
+### Phase P4 - Testing Deepening and Reliability (2 days)
+
+Scope:
+
+- Functions integration tests (ingest -> Firestore writes -> alert generation)
+- Frontend tests for auth states, live updates, error/empty/offline states
+- End-to-end flow test (sign-in, ingest simulation, dashboard update)
+- Surge/load simulation scripts and stability checks
+
+Exit criteria:
+
+- Critical path tests automated and green
+- Regression checks cover ingest, role control, and live telemetry rendering
+
+### Phase P5 - Accessibility and UX Refinement (1 day)
+
+Scope:
+
+- WCAG 2.1 AA validation pass (keyboard, focus, contrast, labels)
+- Add `aria-live` updates for dynamic alerts
+- Reduced motion support and consistent focus ring handling
+- Final copy pass for clarity under time pressure and event noise
+
+Exit criteria:
+
+- Accessibility checklist completed and documented
+- Live operational screens are keyboard-usable and readable under stress
+
+### Phase P6 - Efficiency and Launch Readiness (1 day)
+
+Scope:
+
+- Route-level code splitting for dashboard/firebase-heavy modules
+- Bundle budget checks in CI and warning threshold enforcement
+- Write-throttling/de-dup strategy for simulation ingestion
+- Deployment checklist and rollback playbook
+
+Exit criteria:
+
+- Web build meets performance budget targets
+- Rollback path tested via commit-based recovery
+- Deploy preview and production commands documented
+
+## 4) Workstreams by Judging Criteria
+
+### Code Quality
+
+- Modularize frontend and function utilities
+- Add style/lint/format gates and commit hooks
+- Keep logic side-effect free where possible
+- Define data contracts for zones, alerts, profiles, simulation events
+
+### Security
+
+- Tight role-based Firestore rules with explicit deny behavior
+- Admin role assignment guardrails and audit logs
+- Secret handling via env and deployment secrets only
+- Validate and sanitize all function inputs
+
+### Efficiency
+
+- Event-driven listeners only; avoid polling
+- AI/Translate calls on meaningful change only
+- Cache translations and avoid duplicate requests
+- Reduce bundle size via lazy loading and dependency boundaries
+
+### Testing
+
+- Unit: scoring, routing, parser, validators
+- Integration: function-to-firestore consistency
+- Rules: all collections allow/deny matrices
+- E2E: operator flow and attendee-impact scenarios
+
+### Accessibility
+
+- WCAG AA semantics, contrast, keyboard access
+- `aria-live` for alert updates and status transitions
+- Reduced motion and predictable focus order
+- Mobile-first readability for loud/high-distraction environments
+
+### Google Services
+
+- Firebase Hosting (frontend)
+- Cloud Functions (ingest, role control, recommendation APIs)
+- Firestore (realtime state, alerts, profiles, translation cache)
+- Vertex AI (advanced predictions)
+- Cloud Logging/Monitoring (observability)
+- Google Translate API (multilingual alerts)
+
+### Problem Statement Alignment
+
+- Crowd movement: dynamic rerouting recommendations per zone state
+- Waiting times: queue estimation and proactive redirection
+- Real-time coordination: live operations board + role-based actions
+- Seamless attendee experience: clear advisories, multilingual updates, low-latency UI
+
+## 5) Milestones and Deliverables
+
+- M1: Hardened baseline (quality + security scaffolding complete)
+- M2: Realtime dashboard with reliable recommendations and role-aware actions
+- M3: Vertex AI + Translate integrated with quota-safe triggers
+- M4: Full test matrix + accessibility report + performance gate pass
+- M5: Demo-ready production deploy with rollback-safe release notes
+
+## 6) Risks and Mitigations
+
+- Free-tier quota exhaustion -> trigger thresholds, backoff, and batching
+- Bundle growth from Firebase SDK -> route splitting and selective imports
+- Security drift -> rules tests in CI + denied-case enforcement
+- Model dependency volatility -> deterministic fallback recommendations
+- Ops confusion during event peaks -> concise action cards and escalation levels
+
+## 7) Immediate Next Sprint (Execution Order)
+
+1. Modular refactor + lint/format hooks + CI quality gates
+2. Firestore rules tests + role hardening + CORS/App Check plan
+3. Queue estimator + route engine + actionable recommendation cards
+4. Vertex AI and Translate integration with caching + throttling
+5. Integration/E2E/accessibility/performance audits and fixes
+
+## 8) Definition of Done (Judging-Aligned)
+
+- Code quality gates are automatic and enforced pre-merge
+- Security posture verified by rules tests and role control checks
+- Efficiency targets met (bundle budget, latency, write discipline)
+- Testing includes unit, integration, rules, and e2e critical path
+- Accessibility reaches WCAG 2.1 AA with documented evidence
+- Google services integrated with practical, cost-aware usage
+- Product demonstrably improves crowd movement, waiting times, and coordination
