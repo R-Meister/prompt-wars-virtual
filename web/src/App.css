@@ -154,6 +154,9 @@ h1 {
 }
 
 .btn {
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
   text-decoration: none;
   border: 3px solid var(--ink);
   text-transform: uppercase;
@@ -167,6 +170,13 @@ h1 {
 .btn:focus-visible {
   transform: translateY(-3px);
   box-shadow: 4px 4px 0 var(--ink);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-primary {
@@ -332,10 +342,48 @@ h1 {
   font-size: clamp(1.9rem, 5vw, 3.2rem);
 }
 
+.dashboard-userline {
+  margin: 0.42rem 0 0;
+  color: var(--ink-faded);
+  font-size: 0.92rem;
+}
+
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.status-banner {
+  margin: 0;
+  border-bottom: 3px solid var(--ink);
+  background: #ffe9ca;
+  color: var(--ink);
+  padding: 0.7rem 1.5rem;
+  font-weight: 700;
+}
+
+.dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 3px solid var(--ink);
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border-bottom: 3px solid var(--ink);
+}
+
+.grid-placeholder {
+  margin: 0;
+  grid-column: 1 / -1;
+  padding: 1rem 1.35rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 3px solid var(--ink);
+  background: var(--cream);
 }
 
 .zone-card {
@@ -388,6 +436,33 @@ h1 {
   margin: 0;
   max-width: 800px;
   line-height: 1.5;
+  color: var(--ink-faded);
+}
+
+.alert-panel {
+  border-top: 3px solid var(--ink);
+  padding: 1.5rem;
+  background: #fff;
+}
+
+.alert-panel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.alert-panel p {
+  margin: 0;
+  color: var(--ink-faded);
+}
+
+.alert-panel ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.alert-panel li {
   color: var(--ink-faded);
 }
 
@@ -463,6 +538,7 @@ h1 {
 
   .feature-strip,
   .phase-strip,
+  .dashboard-metrics,
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
