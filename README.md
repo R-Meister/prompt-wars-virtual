@@ -80,6 +80,13 @@ To avoid any real money usage, keep external paid APIs disabled:
 - Do not set `GOOGLE_TRANSLATE_API_KEY` (or leave it blank)
 - Keep usage on Firebase Spark plan and avoid upgrading billing
 
+You can verify the default safety setting with:
+
+```bash
+cd functions
+npm run check:zero-cost
+```
+
 With this setup, the app runs fully with deterministic fallbacks and cached/local messages only.
 
 ## Notes
